@@ -8,6 +8,14 @@
 \description{
 This package contains tools for interacting with KI PET group pipeline files with R.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/mathesong/kipettools}
+  \item Report bugs at \url{https://github.com/mathesong/kipettools/issues}
+}
+
+}
 \author{
 \strong{Maintainer}: Granville Matheson \email{mathesong@gmail.com}
 

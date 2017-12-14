@@ -13,7 +13,18 @@ knitr::opts_chunk$set(
 ```
 # kipettools : Tools for the KI PET Group
 
-The kipettools package is a set of tools developed over the past few years to help with regular tasks at the KI PET Centre involving interacting with outputs from the pipeline using R.  This package basically consists of convenience functions developed over the years which have been useful, but due to this process, much of the code is not very pretty, coming from early stages of learning R, or from hacking something together for the job at hand.  Nevertheless, these tools have stood the test of time in being useful, so hopefully having them all documented and saved in one place will make them more so..
+The kipettools package is a set of tools to help with regular tasks at the KI PET Centre involving interacting with outputs from the pipeline using R.  It mostly consists of convenience functions developed over the years which have been useful: due to this process, however, much of the code is not very pretty, coming from early stages of learning R, or from hacking something together for the job at hand.  Nevertheless, many of these tools have stood the test of time in being useful, so hopefully having them all documented and saved in one place will make them more so..
+
+
+## Installation
+
+The package can be installed in R directly from GitHub, using the *devtools* package as follows:
+
+```{r, eval=F}
+# install.packages("devtools")
+devtools::install_github("mathesong/kipettools")
+```
+
 
 
 ## Main functions
@@ -25,3 +36,6 @@ The primary functions available here are the following:
 * *roistats\_getData*: Extract TACs and other information from a roistats file
 
 
+## New Functions and Requirements
+
+I am also busy implementing some functions for extracting information from and converting ecat7 files.  This includes some wrapper functions around terminal applications.  For these, you will need both gzip and the Turku PET Centre C libraries ([tpcclib](http://www.turkupetcentre.net/petanalysis/sw_pet.html#tpc)) installed and added to your path.  For Windows users, gzip is installed with [Rtools](https://cran.r-project.org/bin/windows/Rtools/) - alternatively, you can use installr::install.Rtools().
