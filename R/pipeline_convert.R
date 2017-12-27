@@ -147,7 +147,7 @@ ecat_info <- function(v_filename, inpath = getwd(), outpath = getwd(), checkLine
 ecat2nii <- function(v_filename, inpath = getwd(), out_filename = NULL,
                      outpath = getwd(), checkLines = F, compressFile = T) {
 
-  # Fix extentions
+  # Fix extensions
 
   v_filename_extensions <- tibble::as_tibble(stringr::str_locate_all(v_filename, "\\.")[[1]])
   out_filename_extensions <- tibble::as_tibble(stringr::str_locate_all(out_filename, "\\.")[[1]])
@@ -277,7 +277,7 @@ ecat2nii <- function(v_filename, inpath = getwd(), out_filename = NULL,
 #'
 get_studydb_data_folder <- function(studyFolder = getwd(), savecsv = F) {
   dirs <- list.dirs(recursive = F, full.names = F, path = studyFolder)
-  dbdat <- lapply(dirs, get_studydb_data, path = path)
+  dbdat <- lapply(dirs, get_studydb_data, path = studyFolder)
   dbdat <- do.call("rbind", dbdat)
 
   if (savecsv != F) {
@@ -328,10 +328,12 @@ get_studydb_data <- function(subjFolder, path = getwd()) {
 
     variables <- dat$study$variables[[1]][[1]][, , 1]
 
+    petvariables <- unlist(variables$PET[,,1])
+
     petfiles <- tibble::tibble(
       modality = "pet",
-      descrip = row.names(variables$PET),
-      filenames = paste0(petfolder, "/", unlist(variables$PET))
+      descrip = names(petvariables),
+      filenames = paste0(petfolder, "/", unlist(petvariables))
     )
 
     petfiles$PETNo <- stringr::str_extract(petfiles$descrip, "[1-9]$")
