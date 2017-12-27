@@ -35,8 +35,8 @@ ecat_info2bids_json <- function(v_filename, out_filename, inpath = getwd(),
 
   # Fix Paths
 
-  inpath <- nicebracketer(inpath)
-  outpath <- nicebracketer(outpath)
+  inpath <- normalizePath(inpath, winslash = '/')
+  outpath <- normalizePath(outpath, winslash = '/')
 
 
   # Get Info
@@ -90,11 +90,58 @@ ecat_info2bids_json <- function(v_filename, out_filename, inpath = getwd(),
 
   out <- list(Info = Info, Time = Time)
 
-  json_out <- jsonlite::toJSON(out)
-  json_out <- jsonlite::prettify(json_out)
+  # json_out <- jsonlite::toJSON(out)
+  # json_out <- jsonlite::prettify(json_out)
 
   jsonlite::write_json(
-    json_out,
-    path = paste0(outpath, "/", out_filename, ".json")
+    out,
+    path = paste0(outpath, "/", out_filename, ".json"),
+    pretty=T
   )
+}
+
+#' Combine JSON files
+#'
+#' @param json_filenames Vector of the json files to be combined. Preferably
+#'   without file extensions. Preferably containing the full path.
+#' @param out_filename Filename of the output json file.  Preferably without
+#'   file extensions.
+#' @param inpath Path to the input files. Defaults to the working directory.
+#' @param outpath Path to the output files. Defaults to the working directory.
+#'
+#' @return Creates a combined .json file.
+#' @export
+#'
+#' @examples
+#' k <- list(abc = 1, def = 2)
+#' j <- list(abcd = 3, defg = 4)
+#' jsonlite::write_json(k, 'json1.json')
+#' jsonlite::write_json(j, 'json2.json')
+#'
+#' combine_jsons(c('json1', 'json2'), 'combined')
+combine_jsons <- function(json_filenames, out_filename, outpath = getwd()) {
+
+  # Fix extensions
+
+  json_filenames <- purrr::map(json_filenames, stringr::str_split_fixed, pattern='\\.', n=2)
+  json_filenames <- do.call(rbind, json_filenames)[,1]
+
+  out_filename <- stringr::str_split_fixed(out_filename, '\\.', 2)[[1]]
+
+  json_filenames <- paste0(json_filenames, '.json')
+  out_filename <- paste0(out_filename, '.json')
+
+  # Read and combine
+
+  json_data <- lapply(json_filenames, jsonlite::fromJSON )
+  combined_json <- do.call(c, json_data)
+
+  # Write
+
+  jsonlite::write_json(
+    combined_json,
+    path = paste0(outpath, "/", out_filename),
+    pretty=T
+  )
+
 }

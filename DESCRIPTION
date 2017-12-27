@@ -16,7 +16,8 @@ Imports:
     dplyr,
     tools,
     lubridate,
-    jsonlite
+    jsonlite,
+    divest
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 6.0.1
 URL: https://github.com/mathesong/kipettools

@@ -24,7 +24,7 @@ working directory.}
 Default FALSE.}
 
 \item{compressFile}{Should the output be compressed as a .nii.gz file?
-Defaulse TRUE.}
+Default TRUE.}
 }
 \value{
 If checkLines is TRUE, the commands will be returned.  If checkLines

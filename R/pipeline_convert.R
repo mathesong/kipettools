@@ -30,8 +30,8 @@ ecat_info <- function(v_filename, inpath = getwd(), outpath = getwd(), checkLine
 
   # Fix Paths
 
-  inpath <- nicebracketer(inpath)
-  outpath <- nicebracketer(outpath)
+  inpath <- normalizePath(inpath, winslash = '/')
+  outpath <- normalizePath(outpath, winslash = '/')
 
   # Write Commands
 
@@ -135,7 +135,7 @@ ecat_info <- function(v_filename, inpath = getwd(), outpath = getwd(), checkLine
 #' @param checkLines Should the system commands be checked (and not run)?
 #'   Default FALSE.
 #' @param compressFile Should the output be compressed as a .nii.gz file?
-#'   Defaulse TRUE.
+#'   Default TRUE.
 #'
 #' @return If checkLines is TRUE, the commands will be returned.  If checkLines
 #'   is FALSE, the binary success of each command will be returned.
@@ -170,8 +170,8 @@ ecat2nii <- function(v_filename, inpath = getwd(), out_filename = NULL,
 
   # Fix Paths
 
-  inpath <- nicebracketer(inpath)
-  outpath <- nicebracketer(outpath)
+  inpath <- normalizePath(inpath, winslash = '/')
+  outpath <- normalizePath(outpath, winslash = '/')
 
 
   # Write Commands
@@ -307,7 +307,7 @@ get_studydb_data_folder <- function(studyFolder = getwd(), savecsv = F) {
 #' abcd_dat <- get_studydb_data('abcd')
 #'
 get_studydb_data <- function(subjFolder, path = getwd()) {
-  path <- nicebracketer(path)
+  path <- normalizePath(path, winslash = '/')
   studydb_file <- paste0(path, "/", subjFolder, "/", "studyDB.mat")
 
   if (!file.exists(studydb_file)) {
@@ -322,8 +322,8 @@ get_studydb_data <- function(subjFolder, path = getwd()) {
     layoutFile <- as.character(dat$study$layoutFileName)
     variablesFile <- as.character(dat$study$variablesFileName)
 
-    petfolder <- nicebracketer(dat$study$raw.pet.ecat7.dir)
-    mrfolder <- nicebracketer(dat$study$raw.mr.dicom.dir)
+    petfolder <- normalizePath(dat$study$raw.pet.ecat7.dir, winslash = '/')
+    mrfolder <- normalizePath(dat$study$raw.mr.dicom.dir, winslash = '/')
 
 
     variables <- dat$study$variables[[1]][[1]][, , 1]
@@ -362,26 +362,6 @@ get_studydb_data <- function(subjFolder, path = getwd()) {
 
     return(outdat)
   }
-}
-
-#' Nice Bracketer
-#'
-#' Because Windows brackets look ugly for folder locations
-#'
-#' @param filelocation A path name
-#'
-#' @return The same path name, but with forward slashes
-#' @export
-#'
-#' @examples
-#' nicebracketer('C:\\Users\\User\\Documents\\SpecialFile.docx')
-#' nicebracketer('C:\\Users\\User\\Documents')
-#'
-#'
-nicebracketer <- function(filelocation) {
-  filelocation <- as.character(filelocation)
-  out <- gsub(pattern = "\\", "/", filelocation, fixed = T)
-  return(out)
 }
 
 
@@ -451,4 +431,145 @@ terminal_munge <- function(terminal_output, matchpattern=NULL, splitpattern=NULL
   }
 
   return(out)
+}
+
+
+#' Get Attributes of DICOM files
+#'
+#' This function allows users to select which DICOM folder to convert for
+#' whichever purpose.  Heuristic strategies can be used to select from this list
+#'
+#' @param inpath The path where the DICOM files are located.  A file search will
+#'   take place in all nested directories. This allows for convenience in
+#'   directory specification, but be careful about having lots of files in
+#'   nested places within the specified folder.
+#'
+#' @return A tibble of the details and attributes of the found dcm files.
+#' @export
+#'
+#' @examples
+#' dicom_attributes()
+dicom_attributes <- function(inpath = getwd()) {
+
+  inpath <- normalizePath(inpath, winslash = '/')
+
+  dcms <- list.files(inpath, pattern = '*.dcm', recursive = T, full.names = F)
+  dcm_filedetails <- stringr::str_split(dcms, '/', simplify=T)
+
+  if( ncol(dcm_filedetails) > 2 ) {
+    extrapath <- apply( dcm_filedetails[,1:(ncol(dcm_filedetails)-2)],
+                        1, paste, collapse = '/')
+    extrapath <- paste0('/', extrapath)
+
+  } else {
+    extraPath <- NULL
+  }
+
+  dcm_files <- tibble::tibble(
+    dcm_foldername = dcm_filedetails[,(ncol(dcm_filedetails)-1)],
+    dcm_filename = dcm_filedetails[,ncol(dcm_filedetails)],
+    mainpath = paste0(inpath, extraPath),
+    folderpath = paste0(inpath, extraPath, '/', dcm_foldername))
+
+  first_dcms <- which(!duplicated(dcm_files$dcm_foldername, fromLast = F))
+  dcm_folders <- dcm_files[first_dcms,]
+
+  dcm_details <- lapply(dcm_folders$folderpath, divest::scanDicom)
+  dcm_details <- dplyr::bind_rows(dcm_details)
+  dcm_details <- dplyr::rename(dcm_details, folderpath = rootPath)
+
+  dcm_details <- dplyr::full_join(dcm_details, dcm_folders)
+
+  return(dcm_details)
+
+}
+
+
+#' DICOM 2 NII Converter with BIDS Sidecars
+#'
+#' Function to convert DCM to nii, including the BIDS sidecar.  This is a
+#' wrapper for dcm2niix by Chris Rorden.
+#'
+#' @param dcm_folder The folder of the DICOM file which should be converted.
+#'   This can either be the whole path, or it can be the specific foldername
+#'   (with the path in inpath).
+#' @param inpath Optional: this is the path of the folder which contains the
+#'   folder with the DICOM files.  If the full path is specified as dcm_folder,
+#'   then this argument should be left.
+#' @param out_filename Filename of the output file. Preferably without file
+#'   extension. Defaults to same as the input filename. Should only be the
+#'   filename. Path goes into outpath. Can also be specified in terms of the
+#'   dcm2niix guidelines.
+#' @param outpath Path where the output file should be placed. Defaults to the
+#'   working directory.
+#' @param checkLines hould the system commands be checked (and not run)? Default
+#'   FALSE.
+#' @param compressFile Should the output be compressed as a .nii.gz file?
+#'   Default TRUE.
+#' @param bids_sidecar Should the BIDS sidecar json file be produced. Options
+#'   are 'y', 'n' or 'o' (only).
+#' @param anon Should the BIDS sidecar be anonymised? Options are 'y' or 'n'
+#'
+#' @return Creates the nii and json files as desired and returns the success
+#'   message.
+#' @export
+#'
+#' @references https://github.com/rordenlab/dcm2niix
+#'
+#' @examples
+#' dicom2nii(dcm_folder, checkLines = T)
+dicom2nii <- function(dcm_folder, inpath = NULL, out_filename = '%f_%p_%t_%s',
+                     outpath = getwd(), checkLines = F, compressFile = 'y',
+                     bids_sidecar='y', anon='y') {
+
+  # Fix extensions
+
+  out_filename_extensions <- tibble::as_tibble(stringr::str_locate_all(out_filename, "\\.")[[1]])
+
+  if (nrow(out_filename_extensions) > 0) {
+    out_extstart <- min(out_filename_extensions$start)
+    out_filename <- stringr::str_sub(out_filename, end = out_extstart - 1)
+  }
+
+
+
+  # Fix Paths
+
+  if(!is.null(inpath)) {
+    inpath <- normalizePath(inpath, winslash = '/')
+    dcm_folder <- paste0(inpath, '/', dcm_folder)
+  } else {
+    dcm_folder <- normalizePath(dcm_folder, winslash= '/')
+  }
+
+  outpath <- normalizePath(outpath, winslash = '/')
+
+
+  # Write Commands
+
+  command <- paste0(
+    "dcm2niix ",
+    "-b ",bids_sidecar," ",
+    "-ba ",anon," ",
+    "-z ",compressFile," ",
+    "-o ", '"', outpath, '"', " ",
+    "-f ", out_filename, " ",
+    '"', dcm_folder, '"'
+  )
+
+  if (checkLines) {
+    command <- paste0("echo ", command)
+  }
+
+
+  # Execute
+
+  outcome <- system(command, intern = T)
+
+  outcome <- paste(outcome, collapse = " ")
+
+  print(outcome)
+
+  return(outcome)
+
 }
