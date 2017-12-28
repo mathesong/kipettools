@@ -35,8 +35,14 @@ get_os <- function() {
 #' check_winlinux()
 #'
 check_winlinux <- function() {
-  success <- tryCatch(expr = { system('bash -c uname -a', intern=T)=="Linux" },
-                      error = function(e) { return(FALSE) })
+  success <- tryCatch(
+    expr = {
+      system("bash -c uname -a", intern = T) == "Linux"
+    },
+    error = function(e) {
+      return(FALSE)
+    }
+  )
   return(success)
 }
 
@@ -51,10 +57,17 @@ check_winlinux <- function() {
 #'
 check_tpcclib <- function() {
   suppressWarnings(
-    out <- tryCatch(expr = { paste (system('imghead', intern=T), collapse = ' ') },
-                      error = function(e) { return(FALSE) }) )
+    out <- tryCatch(
+      expr = {
+        paste(system("imghead", intern = T), collapse = " ")
+      },
+      error = function(e) {
+        return(FALSE)
+      }
+    )
+  )
 
-  success <- ifelse( stringr::str_detect(out, 'tpcclib'), TRUE, FALSE )
+  success <- ifelse(stringr::str_detect(out, "tpcclib"), TRUE, FALSE)
   return(success)
 }
 
@@ -69,23 +82,23 @@ check_tpcclib <- function() {
 #' @examples
 #' fix_command_linux('uname -a')
 fix_command_linux <- function(command_text) {
-
   os <- get_os()
 
-  if(os=='win') {
+  if (os == "win") {
     winlin <- check_winlinux()
 
-    if(!winlin) {
-      stop(paste0('Your OS appears to be Windows, but you require Linux for this command.\n',
-                  'You can use the Windows 10 Ubuntu extension, however it does not\n',
-                  'appear to be available. Please verify this it is installed and\n',
-                  'working correctly'))
+    if (!winlin) {
+      stop(paste0(
+        "Your OS appears to be Windows, but you require Linux for this command.\n",
+        "You can use the Windows 10 Ubuntu extension, however it does not\n",
+        "appear to be available. Please verify this it is installed and\n",
+        "working correctly"
+      ))
     }
-    command_text <- paste0('bash -c ', command_text)
+    command_text <- paste0("bash -c ", command_text)
   }
 
   return(command_text)
-
 }
 
 #' Check if dcm2niix is installed and in the path
@@ -97,16 +110,20 @@ fix_command_linux <- function(command_text) {
 #' check_dcm2niix()
 #'
 check_dcm2niix <- function() {
-
-  call_text <- fix_command_linux('dcm2niix')
+  call_text <- fix_command_linux("dcm2niix")
 
   suppressWarnings(
-    out <- tryCatch(expr = { paste (system(call_text, intern=T), collapse = ' ') },
-                    error = function(e) { return(FALSE) }) )
+    out <- tryCatch(
+      expr = {
+        paste(system(call_text, intern = T), collapse = " ")
+      },
+      error = function(e) {
+        return(FALSE)
+      }
+    )
+  )
 
-  success <- ifelse( stringr::str_detect(out, 'dcm2niiX'), TRUE, FALSE )
+  success <- ifelse(stringr::str_detect(out, "dcm2niiX"), TRUE, FALSE)
 
   return(success)
 }
-
-

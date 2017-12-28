@@ -5,7 +5,7 @@
 \title{Ecat7 to NIfTI Converter}
 \usage{
 ecat2nii(v_filename, inpath = getwd(), out_filename = NULL,
-  outpath = getwd(), checkLines = F, compressFile = T)
+  outpath = getwd(), checkLines = F, compressFile = T, bids_sidecar = T)
 }
 \arguments{
 \item{v_filename}{Filename of the input .v file. Preferably without file
@@ -25,6 +25,8 @@ Default FALSE.}
 
 \item{compressFile}{Should the output be compressed as a .nii.gz file?
 Default TRUE.}
+
+\item{bids_sidecar}{Should a BIDS sidecar file also be produced? Default T.}
 }
 \value{
 If checkLines is TRUE, the commands will be returned.  If checkLines

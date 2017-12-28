@@ -2,11 +2,11 @@
 % Please edit documentation in R/kipettools-package.R
 \docType{package}
 \name{kipettools-package}
-\alias{kipettools}
 \alias{kipettools-package}
-\title{kipettools: R Tools For KI PET Group Files}
+\alias{_PACKAGE}
+\title{kipettools package}
 \description{
-This package contains tools for interacting with KI PET group pipeline files with R.
+KI PET Group Tools for R
 }
 \seealso{
 Useful links:
@@ -17,7 +17,6 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Granville Matheson \email{mathesong@gmail.com}
-
+Granville Matheson \href{mailto:mathesong@gmail.com}{mathesong@gmail.com}
 }
 \keyword{internal}

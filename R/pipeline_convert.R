@@ -30,8 +30,8 @@ ecat_info <- function(v_filename, inpath = getwd(), outpath = getwd(), checkLine
 
   # Fix Paths
 
-  inpath <- normalizePath(inpath, winslash = '/')
-  outpath <- normalizePath(outpath, winslash = '/')
+  inpath <- normalizePath(inpath, winslash = "/")
+  outpath <- normalizePath(outpath, winslash = "/")
 
   # Write Commands
 
@@ -136,6 +136,7 @@ ecat_info <- function(v_filename, inpath = getwd(), outpath = getwd(), checkLine
 #'   Default FALSE.
 #' @param compressFile Should the output be compressed as a .nii.gz file?
 #'   Default TRUE.
+#' @param bids_sidecar Should a BIDS sidecar file also be produced? Default T.
 #'
 #' @return If checkLines is TRUE, the commands will be returned.  If checkLines
 #'   is FALSE, the binary success of each command will be returned.
@@ -145,7 +146,8 @@ ecat_info <- function(v_filename, inpath = getwd(), outpath = getwd(), checkLine
 #' ecat2nii('r_abcd_1', out_filename = 'abcd_1', checkLines = F, compressFile = T)
 #'
 ecat2nii <- function(v_filename, inpath = getwd(), out_filename = NULL,
-                     outpath = getwd(), checkLines = F, compressFile = T) {
+                     outpath = getwd(), checkLines = F, compressFile = T,
+                     bids_sidecar = T) {
 
   # Fix extensions
 
@@ -170,8 +172,8 @@ ecat2nii <- function(v_filename, inpath = getwd(), out_filename = NULL,
 
   # Fix Paths
 
-  inpath <- normalizePath(inpath, winslash = '/')
-  outpath <- normalizePath(outpath, winslash = '/')
+  inpath <- normalizePath(inpath, winslash = "/")
+  outpath <- normalizePath(outpath, winslash = "/")
 
 
   # Write Commands
@@ -253,6 +255,12 @@ ecat2nii <- function(v_filename, inpath = getwd(), out_filename = NULL,
       success <- paste0(success, zipsuccess)
     }
 
+    if (bids_sidecar) {
+      ecat_info2bids_json(
+        v_filename, out_filename, inpath,
+        outpath
+      )
+    }
 
     return(success)
   }
@@ -307,7 +315,7 @@ get_studydb_data_folder <- function(studyFolder = getwd(), savecsv = F) {
 #' abcd_dat <- get_studydb_data('abcd')
 #'
 get_studydb_data <- function(subjFolder, path = getwd()) {
-  path <- normalizePath(path, winslash = '/')
+  path <- normalizePath(path, winslash = "/")
   studydb_file <- paste0(path, "/", subjFolder, "/", "studyDB.mat")
 
   if (!file.exists(studydb_file)) {
@@ -322,13 +330,13 @@ get_studydb_data <- function(subjFolder, path = getwd()) {
     layoutFile <- as.character(dat$study$layoutFileName)
     variablesFile <- as.character(dat$study$variablesFileName)
 
-    petfolder <- normalizePath(dat$study$raw.pet.ecat7.dir, winslash = '/')
-    mrfolder <- normalizePath(dat$study$raw.mr.dicom.dir, winslash = '/')
+    petfolder <- normalizePath(dat$study$raw.pet.ecat7.dir, winslash = "/")
+    mrfolder <- normalizePath(dat$study$raw.mr.dicom.dir, winslash = "/")
 
 
     variables <- dat$study$variables[[1]][[1]][, , 1]
 
-    petvariables <- unlist(variables$PET[,,1])
+    petvariables <- unlist(variables$PET[, , 1])
 
     petfiles <- tibble::tibble(
       modality = "pet",
@@ -450,29 +458,38 @@ terminal_munge <- function(terminal_output, matchpattern=NULL, splitpattern=NULL
 #' @examples
 #' dicom_attributes()
 dicom_attributes <- function(inpath = getwd()) {
+  inpath <- normalizePath(inpath, winslash = "/")
 
-  inpath <- normalizePath(inpath, winslash = '/')
+  dcms <- list.files(inpath, pattern = "*.dcm", recursive = T, full.names = F)
+  dcm_filedetails <- stringr::str_split(dcms, "/", simplify = T)
 
-  dcms <- list.files(inpath, pattern = '*.dcm', recursive = T, full.names = F)
-  dcm_filedetails <- stringr::str_split(dcms, '/', simplify=T)
 
-  if( ncol(dcm_filedetails) > 2 ) {
-    extrapath <- apply( dcm_filedetails[,1:(ncol(dcm_filedetails)-2)],
-                        1, paste, collapse = '/')
-    extrapath <- paste0('/', extrapath)
+  # This is an ugly fix - something more elegant should be here
+  if (ncol(dcm_filedetails) > 3) {
+    extraPath <- apply(
+      dcm_filedetails[, 1:(ncol(dcm_filedetails) - 2)],
+      1, paste, collapse = "/"
+    )
+    extraPath <- paste0("/", extraPath)
+  }
 
-  } else {
+  if (ncol(dcm_filedetails) > 2) {
+    extraPath <- paste0("/", dcm_filedetails[, (ncol(dcm_filedetails) - 2)])
+  }
+
+  if (ncol(dcm_filedetails) <= 2) {
     extraPath <- NULL
   }
 
   dcm_files <- tibble::tibble(
-    dcm_foldername = dcm_filedetails[,(ncol(dcm_filedetails)-1)],
-    dcm_filename = dcm_filedetails[,ncol(dcm_filedetails)],
+    dcm_foldername = dcm_filedetails[, (ncol(dcm_filedetails) - 1)],
+    dcm_filename = dcm_filedetails[, ncol(dcm_filedetails)],
     mainpath = paste0(inpath, extraPath),
-    folderpath = paste0(inpath, extraPath, '/', dcm_foldername))
+    folderpath = paste0(inpath, extraPath, "/", dcm_foldername)
+  )
 
   first_dcms <- which(!duplicated(dcm_files$dcm_foldername, fromLast = F))
-  dcm_folders <- dcm_files[first_dcms,]
+  dcm_folders <- dcm_files[first_dcms, ]
 
   dcm_details <- lapply(dcm_folders$folderpath, divest::scanDicom)
   dcm_details <- dplyr::bind_rows(dcm_details)
@@ -481,7 +498,6 @@ dicom_attributes <- function(inpath = getwd()) {
   dcm_details <- dplyr::full_join(dcm_details, dcm_folders)
 
   return(dcm_details)
-
 }
 
 
@@ -518,9 +534,9 @@ dicom_attributes <- function(inpath = getwd()) {
 #'
 #' @examples
 #' dicom2nii(dcm_folder, checkLines = T)
-dicom2nii <- function(dcm_folder, inpath = NULL, out_filename = '%f_%p_%t_%s',
-                     outpath = getwd(), checkLines = F, compressFile = 'y',
-                     bids_sidecar='y', anon='y') {
+dicom2nii <- function(dcm_folder, inpath = NULL, out_filename = "%f_%p_%t_%s",
+                      outpath = getwd(), checkLines = F, compressFile = "y",
+                      bids_sidecar="y", anon="y") {
 
   # Fix extensions
 
@@ -535,23 +551,24 @@ dicom2nii <- function(dcm_folder, inpath = NULL, out_filename = '%f_%p_%t_%s',
 
   # Fix Paths
 
-  if(!is.null(inpath)) {
-    inpath <- normalizePath(inpath, winslash = '/')
-    dcm_folder <- paste0(inpath, '/', dcm_folder)
+  if (!is.null(inpath)) {
+    inpath <- normalizePath(inpath, winslash = "/")
+    dcm_folder <- paste0(inpath, "/", dcm_folder)
   } else {
-    dcm_folder <- normalizePath(dcm_folder, winslash= '/')
+    dcm_folder <- normalizePath(dcm_folder, winslash = "/")
   }
 
-  outpath <- normalizePath(outpath, winslash = '/')
+  outpath <- normalizePath(outpath, winslash = "/")
+  dir.create(outpath)
 
 
   # Write Commands
 
   command <- paste0(
     "dcm2niix ",
-    "-b ",bids_sidecar," ",
-    "-ba ",anon," ",
-    "-z ",compressFile," ",
+    "-b ", bids_sidecar, " ",
+    "-ba ", anon, " ",
+    "-z ", compressFile, " ",
     "-o ", '"', outpath, '"', " ",
     "-f ", out_filename, " ",
     '"', dcm_folder, '"'
@@ -571,5 +588,4 @@ dicom2nii <- function(dcm_folder, inpath = NULL, out_filename = '%f_%p_%t_%s',
   print(outcome)
 
   return(outcome)
-
 }

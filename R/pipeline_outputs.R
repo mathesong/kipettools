@@ -29,7 +29,7 @@ kfresults_getData <- function(matfile) {
     PETNo <- as.numeric(details[, 3])
   }
 
-  if (n_underscores != 2 | n_underscores != 3) {
+  if (n_underscores != 2 & n_underscores != 3) {
     stop("\nThere should be either two or three underscores in the filename.
          Either this file is incorrectly named with its pipeline output,
          or it is not a kinfitresults file.")
@@ -107,7 +107,7 @@ roistats_getData <- function(matfile) {
     PETNo <- as.numeric(stringr::str_match(matfile, ".*dynpet(\\d+).*")[2])
   }
 
-  if (n_underscores != 2 | n_underscores != 3) {
+  if (n_underscores != 2 & n_underscores != 3) {
     stop("\nThere should be either two or three underscores in the filename.
          Either this file is incorrectly named with its pipeline output,
          or it is not a roistats file.")

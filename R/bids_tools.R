@@ -35,8 +35,8 @@ ecat_info2bids_json <- function(v_filename, out_filename, inpath = getwd(),
 
   # Fix Paths
 
-  inpath <- normalizePath(inpath, winslash = '/')
-  outpath <- normalizePath(outpath, winslash = '/')
+  inpath <- normalizePath(inpath, winslash = "/")
+  outpath <- normalizePath(outpath, winslash = "/")
 
 
   # Get Info
@@ -96,7 +96,7 @@ ecat_info2bids_json <- function(v_filename, out_filename, inpath = getwd(),
   jsonlite::write_json(
     out,
     path = paste0(outpath, "/", out_filename, ".json"),
-    pretty=T
+    pretty = T
   )
 }
 
@@ -123,25 +123,68 @@ combine_jsons <- function(json_filenames, out_filename, outpath = getwd()) {
 
   # Fix extensions
 
-  json_filenames <- purrr::map(json_filenames, stringr::str_split_fixed, pattern='\\.', n=2)
-  json_filenames <- do.call(rbind, json_filenames)[,1]
+  json_filenames <- purrr::map(json_filenames, stringr::str_split_fixed, pattern = "\\.", n = 2)
+  json_filenames <- do.call(rbind, json_filenames)[, 1]
 
-  out_filename <- stringr::str_split_fixed(out_filename, '\\.', 2)[[1]]
+  out_filename <- stringr::str_split_fixed(out_filename, "\\.", 2)[[1]]
 
-  json_filenames <- paste0(json_filenames, '.json')
-  out_filename <- paste0(out_filename, '.json')
+  json_filenames <- paste0(json_filenames, ".json")
+  out_filename <- paste0(out_filename, ".json")
 
   # Read and combine
 
-  json_data <- lapply(json_filenames, jsonlite::fromJSON )
-  combined_json <- do.call(c, json_data)
+  json_data <- lapply(json_filenames, jsonlite::fromJSON)
+  combined_json <- rlist::list.merge(json_data)
 
   # Write
 
   jsonlite::write_json(
     combined_json,
     path = paste0(outpath, "/", out_filename),
-    pretty=T
+    pretty = T
   )
+}
 
+#' Add Data to JSON file
+#'
+#' @param list A list with extra information
+#' @param json_filename The json file to be supplemented. Preferably
+#'   without file extensions. Can contain the full path.
+#' @param jsonpath The path for the json file. Only required if it
+#'   has not been provided in the json_filename.
+#'
+#' @return Outputs the supplemented json file.
+#' @export
+#'
+#' @examples
+#' add2json(list1, 'pet/sub-01_pet')
+#'
+add2json <- function(list, json_filename, jsonpath = NULL) {
+
+  # Fix extensions
+
+  json_filename <- stringr::str_split_fixed(json_filename, "\\.", 2)[[1]]
+  json_filename <- paste0(json_filename, ".json")
+
+  if (is.null(jsonpath)) {
+    json_filename <- normalizePath(json_filename, winslash = "/")
+  }
+
+  if (!is.null(jsonpath)) {
+    jsonpath <- normalizePath(jsonpath, winslash = "/")
+    json_filename <- paste0(jsonpath, "/", json_filename)
+  }
+
+  # Read and combine
+
+  json_data <- jsonlite::fromJSON(json_filename)
+  combined_json <- rlist::list.merge(list, json_data)
+
+  # Write
+
+  jsonlite::write_json(
+    combined_json,
+    path = json_filename,
+    pretty = T
+  )
 }
