@@ -82,7 +82,8 @@ ecat_info <- function(v_filename, inpath = getwd(), outpath = getwd(), checkLine
     decayfactor_dat <- suppressWarnings(
       terminal_munge(outcome_decay[5:length(outcome_decay)], splitpattern = " +")
     )$tibdat
-    decayfactor_dat <- dplyr::select(decayfactor_dat, everything(), Decay.factor = Decay, -factor)
+    decayfactor_dat <- dplyr::select(decayfactor_dat, -factor)
+    decayfactor_dat <- dplyr::rename(decayfactor_dat, Decay.factor=Decay)
 
     decayfactor <- decayfactor_dat$Decay.factor
 
@@ -113,7 +114,7 @@ ecat_info <- function(v_filename, inpath = getwd(), outpath = getwd(), checkLine
       counts_dat = counts_dat
     )
   } else {
-    out <- paste0(outcome_hdr, outcome_decay, outcome_sif, sep = "; ")
+    out <- paste(outcome_hdr, outcome_decay, outcome_sif, sep = "; ")
   }
 
   return(out)
@@ -319,7 +320,7 @@ get_studydb_data <- function(subjFolder, path = getwd()) {
   studydb_file <- paste0(path, "/", subjFolder, "/", "studyDB.mat")
 
   if (!file.exists(studydb_file)) {
-    warning(paste0("No studydb file found for ", subjFolder))
+    warning(paste0("No studydb file found for ", subjFolder, '\n'))
     return(NULL)
   } else {
     dat <- R.matlab::readMat(studydb_file)
@@ -330,31 +331,56 @@ get_studydb_data <- function(subjFolder, path = getwd()) {
     layoutFile <- as.character(dat$study$layoutFileName)
     variablesFile <- as.character(dat$study$variablesFileName)
 
-    petfolder <- normalizePath(dat$study$raw.pet.ecat7.dir, winslash = "/")
-    mrfolder <- normalizePath(dat$study$raw.mr.dicom.dir, winslash = "/")
+    petfolder <- gsub("\\", "/", dat$study$raw.pet.ecat7.dir, fixed = T)
+    mrfolder <- gsub("\\", "/", dat$study$raw.mr.dicom.dir, fixed = T)
 
 
     variables <- dat$study$variables[[1]][[1]][, , 1]
+
+
+    # PET Data
 
     petvariables <- unlist(variables$PET[, , 1])
 
     petfiles <- tibble::tibble(
       modality = "pet",
       descrip = names(petvariables),
-      filenames = paste0(petfolder, "/", unlist(petvariables))
+      subjRelativePath = as.character(petfolder),
+      filenames = unlist(petvariables)
     )
 
     petfiles$PETNo <- stringr::str_extract(petfiles$descrip, "[1-9]$")
 
+    ## Get original filenames
+
+    ecatinfo <- tidyr::nest(petfiles, -descrip)
+    ecatinfo <- dplyr::mutate(ecatinfo, ecatdata = purrr::map(ecatinfo$data, ~ecat_info(v_filename = .x$filenames,
+                                         inpath = paste(path, subjFolder, .x$subjRelativePath, sep = '/') ) ) )
+    orig_filenames <- purrr::map_chr(ecatinfo$ecatdata, c('hdr_dat', 'original_file_name'))
+    orig_filenames <- stringr::str_match(orig_filenames, pattern = '([\\w]*)[\\.[\\w]]*$')[,2]
+
+    petfiles$orig_filenames <- orig_filenames
+
+
+
+
+
+    # MR Data
+
     mrfiles <- tibble::tibble(
       modality = "mr",
       descrip = "dicomfolder",
-      filenames = paste0(mrfolder, "/", unlist(variables$MR))
+      subjRelativePath = as.character(mrfolder),
+      filenames = unlist(variables$MR)
     )
+
+
+
+    # Preparing for output
 
     outdat <- dplyr::bind_rows(petfiles, mrfiles)
 
-    outdat$sdir <- tools::file_path_as_absolute(path)
+    outdat$studyFolder <- tools::file_path_as_absolute(path)
     outdat$subjFolder <- subjFolder
     outdat$subjName <- subjName
     outdat$subjCode <- subjCode
@@ -364,7 +390,9 @@ get_studydb_data <- function(subjFolder, path = getwd()) {
     outdat <- dplyr::select(
       outdat, subjName, subjCode,
       modality, descrip, PETNo,
-      sdir, subjFolder, filenames,
+      studyFolder, subjFolder,
+      subjRelativePath,
+      filenames, orig_filenames,
       layoutFile, variablesFile
     )
 
