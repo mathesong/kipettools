@@ -4,7 +4,8 @@
 \alias{get_studydb_data_folder}
 \title{Get studydb data for a study folder}
 \usage{
-get_studydb_data_folder(studyFolder = getwd(), savecsv = F)
+get_studydb_data_folder(studyFolder = getwd(), savecsv = F,
+  pet_orig_filenames = T)
 }
 \arguments{
 \item{studyFolder}{The folder location of the study folder. Default is
@@ -12,6 +13,9 @@ current directory.}
 
 \item{savecsv}{Should a csv file be saved? Default is FALSE. If you wish to
 save a csv file, replace this argument with the desired filename.}
+
+\item{pet_orig_filenames}{Extract original PET filenames. Note that this takes a while
+as it requires opening the ecat7 fiels.}
 }
 \value{
 A data.frame with the data from the studydb files.

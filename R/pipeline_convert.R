@@ -277,6 +277,8 @@ ecat2nii <- function(v_filename, inpath = getwd(), out_filename = NULL,
 #'   current directory.
 #' @param savecsv Should a csv file be saved? Default is FALSE. If you wish to
 #'   save a csv file, replace this argument with the desired filename.
+#' @param pet_orig_filenames Extract original PET filenames. Note that this takes a while
+#'  as it requires opening the ecat7 fiels.
 #'
 #' @return A data.frame with the data from the studydb files.
 #' @export
@@ -284,9 +286,11 @@ ecat2nii <- function(v_filename, inpath = getwd(), out_filename = NULL,
 #' @examples
 #' get_studydb_data_folder(savecsv = 'studydata.csv')
 #'
-get_studydb_data_folder <- function(studyFolder = getwd(), savecsv = F) {
+get_studydb_data_folder <- function(studyFolder = getwd(), savecsv = F, pet_orig_filenames = T) {
+
   dirs <- list.dirs(recursive = F, full.names = F, path = studyFolder)
-  dbdat <- lapply(dirs, get_studydb_data, path = studyFolder)
+  dbdat <- lapply(dirs, get_studydb_data, path = studyFolder,
+                  pet_orig_filenames = pet_orig_filenames)
   dbdat <- do.call("rbind", dbdat)
 
   if (savecsv != F) {
@@ -308,6 +312,8 @@ get_studydb_data_folder <- function(studyFolder = getwd(), savecsv = F) {
 #'
 #' @param subjFolder The name of the subject folder.
 #' @param path The file path of the study folder.
+#' @param pet_orig_filenames Extract original PET filenames. Note that this takes a while
+#'  as it requires opening the ecat7 fiels.
 #'
 #' @return A data.frame with relevant information from the studyDB file.
 #' @export
@@ -315,7 +321,7 @@ get_studydb_data_folder <- function(studyFolder = getwd(), savecsv = F) {
 #' @examples
 #' abcd_dat <- get_studydb_data('abcd')
 #'
-get_studydb_data <- function(subjFolder, path = getwd()) {
+get_studydb_data <- function(subjFolder, path = getwd(), pet_orig_filenames = T) {
   path <- normalizePath(path, winslash = "/")
   studydb_file <- paste0(path, "/", subjFolder, "/", "studyDB.mat")
 
@@ -353,13 +359,21 @@ get_studydb_data <- function(subjFolder, path = getwd()) {
 
     ## Get original filenames
 
-    ecatinfo <- tidyr::nest(petfiles, -descrip)
-    ecatinfo <- dplyr::mutate(ecatinfo, ecatdata = purrr::map(ecatinfo$data, ~ecat_info(v_filename = .x$filenames,
-                                         inpath = paste(path, subjFolder, .x$subjRelativePath, sep = '/') ) ) )
-    orig_filenames <- purrr::map_chr(ecatinfo$ecatdata, c('hdr_dat', 'original_file_name'))
-    orig_filenames <- stringr::str_match(orig_filenames, pattern = '([\\w]*)[\\.[\\w]]*$')[,2]
+    if(pet_orig_filenames) {
 
-    petfiles$orig_filenames <- orig_filenames
+      ecatinfo <- tidyr::nest(petfiles, -descrip)
+      ecatinfo <- dplyr::mutate(ecatinfo, ecatdata = purrr::map(ecatinfo$data, ~ecat_info(v_filename = .x$filenames,
+                                           inpath = paste(path, subjFolder, .x$subjRelativePath, sep = '/') ) ) )
+      orig_filenames <- purrr::map_chr(ecatinfo$ecatdata, c('hdr_dat', 'original_file_name'))
+      orig_filenames <- stringr::str_match(orig_filenames, pattern = '([\\w]*)[\\.[\\w]]*$')[,2]
+
+      petfiles$orig_filenames <- orig_filenames
+
+    } else {
+
+      petfiles$orig_filenames <- NA
+
+    }
 
 
 

@@ -4,12 +4,15 @@
 \alias{get_studydb_data}
 \title{Get studydb data for a single subject's folder}
 \usage{
-get_studydb_data(subjFolder, path = getwd())
+get_studydb_data(subjFolder, path = getwd(), pet_orig_filenames = T)
 }
 \arguments{
 \item{subjFolder}{The name of the subject folder.}
 
 \item{path}{The file path of the study folder.}
+
+\item{pet_orig_filenames}{Extract original PET filenames. Note that this takes a while
+as it requires opening the ecat7 fiels.}
 }
 \value{
 A data.frame with relevant information from the studyDB file.
