@@ -41,6 +41,8 @@ kfresults_getData <- function(matfile) {
   kfresults <- R.matlab::readMat(matfile)
 
   times <- as.numeric(kfresults$data[, , 1]$troi) / 60
+  durations <- c(0, as.numeric(kfresults$data[, , 1]$stats[, , 1]$times[, , 1]$duration) / 60)
+
   gm_tacdata <- as.data.frame(kfresults$data[, , 1]$stats[, , 1]$greymasked[, , 1]$mean)
   raw_tacdata <- as.data.frame(kfresults$data[, , 1]$stats[, , 1]$raw[, , 1]$mean)
 
@@ -58,6 +60,7 @@ kfresults_getData <- function(matfile) {
   tacdata <- rbind(0, tacdata)
 
   tacdata$times <- times
+  tacdata$durations <- durations
   tacdata$weights <- unlist(kfresults$data[, , 1]$weights[, 1])
 
   gm_roisizes <- kfresults$data[, , 1]$stats[, , 1]$greymasked[, , 1]$vol[1, ]
