@@ -83,7 +83,7 @@ ecat_info <- function(v_filename, inpath = getwd(), outpath = getwd(), checkLine
       terminal_munge(outcome_decay[5:length(outcome_decay)], splitpattern = " +")
     )$tibdat
     decayfactor_dat <- dplyr::select(decayfactor_dat, -factor)
-    decayfactor_dat <- dplyr::rename(decayfactor_dat, Decay.factor=Decay)
+    decayfactor_dat <- dplyr::rename(decayfactor_dat, Decay.factor = Decay)
 
     decayfactor <- decayfactor_dat$Decay.factor
 
@@ -287,10 +287,11 @@ ecat2nii <- function(v_filename, inpath = getwd(), out_filename = NULL,
 #' get_studydb_data_folder(savecsv = 'studydata.csv')
 #'
 get_studydb_data_folder <- function(studyFolder = getwd(), savecsv = F, pet_orig_filenames = T) {
-
   dirs <- list.dirs(recursive = F, full.names = F, path = studyFolder)
-  dbdat <- lapply(dirs, get_studydb_data, path = studyFolder,
-                  pet_orig_filenames = pet_orig_filenames)
+  dbdat <- lapply(
+    dirs, get_studydb_data, path = studyFolder,
+    pet_orig_filenames = pet_orig_filenames
+  )
   dbdat <- do.call("rbind", dbdat)
 
   if (savecsv != F) {
@@ -326,7 +327,7 @@ get_studydb_data <- function(subjFolder, path = getwd(), pet_orig_filenames = T)
   studydb_file <- paste0(path, "/", subjFolder, "/", "studyDB.mat")
 
   if (!file.exists(studydb_file)) {
-    warning(paste0("No studydb file found for ", subjFolder, '\n'))
+    warning(paste0("No studydb file found for ", subjFolder, "\n"))
     return(NULL)
   } else {
     dat <- R.matlab::readMat(studydb_file)
@@ -359,20 +360,18 @@ get_studydb_data <- function(subjFolder, path = getwd(), pet_orig_filenames = T)
 
     ## Get original filenames
 
-    if(pet_orig_filenames) {
-
+    if (pet_orig_filenames) {
       ecatinfo <- tidyr::nest(petfiles, -descrip)
-      ecatinfo <- dplyr::mutate(ecatinfo, ecatdata = purrr::map(ecatinfo$data, ~ecat_info(v_filename = .x$filenames,
-                                           inpath = paste(path, subjFolder, .x$subjRelativePath, sep = '/') ) ) )
-      orig_filenames <- purrr::map_chr(ecatinfo$ecatdata, c('hdr_dat', 'original_file_name'))
-      orig_filenames <- stringr::str_match(orig_filenames, pattern = '([\\w]*)[\\.[\\w]]*$')[,2]
+      ecatinfo <- dplyr::mutate(ecatinfo, ecatdata = purrr::map(ecatinfo$data, ~ecat_info(
+        v_filename = .x$filenames,
+        inpath = paste(path, subjFolder, .x$subjRelativePath, sep = "/")
+      )))
+      orig_filenames <- purrr::map_chr(ecatinfo$ecatdata, c("hdr_dat", "original_file_name"))
+      orig_filenames <- stringr::str_match(orig_filenames, pattern = "([\\w]*)[\\.[\\w]]*$")[, 2]
 
       petfiles$orig_filenames <- orig_filenames
-
     } else {
-
       petfiles$orig_filenames <- NA
-
     }
 
 
@@ -628,6 +627,234 @@ dicom2nii <- function(dcm_folder, inpath = NULL, out_filename = "%f_%p_%t_%s",
   outcome <- paste(outcome, collapse = " ")
 
   print(outcome)
+
+  return(outcome)
+}
+
+
+# gradnonlincorr_check <- function(img_filename, inpath = getwd(), img_format_override = NULL) {
+#
+#   # Fix extentions
+#
+#   img_format <- NULL
+#
+#   img_filename_extensions <- tibble::as_tibble(stringr::str_locate_all(img_filename, "\\.")[[1]])
+#
+#   if (nrow(img_filename_extensions) > 0) {
+#     img_extstart <- min(img_filename_extensions$start)
+#     img_format <- stringr::str_sub(img_filename, start = img_extstart + 1)
+#     img_filename <- stringr::str_sub(img_filename, end = img_extstart - 1)
+#   }
+#
+#
+#   # If still NULL (i.e. not in filename)
+#   if (is.null(img_format)) {
+#
+#     if( file_test("-d", img_filename) ) {
+#       img_format <- 'dcm'
+#     }
+#
+#     if( file_test("-f", paste0(img_filename, '.json')) ) {
+#       img_format='nii'
+#     }
+#
+#     # If it's still null (i.e. no DICOM or BIDS sidecar)
+#
+#     if(is.null(img_format) && is.null(img_format_override)) {
+#       stop("Cannot figure out the format of your file. It should be nifti or dicom. If
+#            its nifti, then there should be a bids sidecar.")
+#     }
+#
+#   }
+#
+#   # Fix Paths
+#
+#   inpath <- normalizePath(inpath, winslash = "/")
+#
+#   # DCM file
+#   if( img_format <- 'dcm' ) {
+#     attributes <- dicom_attributes(paste0(inpath, '/', img_filename))
+#   }
+#
+# }
+
+
+#' Perform Gradient Nonlinearity Correction
+#'
+#' This function wraps around FreeSurfer, with MATLAB installed, and the dev
+#' MATLAB files in the correct folders. I've written a guide to installing this
+#' which I'll hopefully put online soon, but contact me if you need this function
+#' and don't have it.  This function modifies the file in place, and saves everything else either in the same folder, or elsewhere.
+#'
+#' @param nii_filename Filename of the input nii file. With or without file
+#' extension
+#' @param inpath Path to the input file. Defaults to working directory.
+#' @param coeff_file Filename of the coefficient file. It should be placed in a special folder and named a particular way, but this information is or will be in the setup guide.
+#' @param outpath_checks Path for the extra images for checking to be placed into. If not specified, they will be kept in the same folder.
+#' @param checkLines Should the system commands be checked (and not run)?
+#'   Default FALSE.
+#' @param bids_sidecar_heurcheck If it is not explicitly stated in the sidecar whether correction has been applied, this checks the sidecar for heuristic signs. This is, however, not guaranteed to come to the correct answer, depending on the MR system. Default is TRUE.
+#' @param bids_sidecar_exists Defaults to TRUE. Set this to FALSE in case of there not being a BIDS sidecar.
+#'
+#' @return This function modifies the file in place, saves all the other files to check, and returns the outcome from the terminal.
+#' @export
+#'
+#' @examples
+#' gradnonlincorr("sub-01_T1w", coeff_file='coeff_avanto.grad')
+#'
+gradnonlincorr <- function(nii_filename, inpath = getwd(), coeff_file,
+                           outpath_checks = NULL, checkLines = F,
+                           bids_sidecar_heurcheck = T, bids_sidecar_exists = T) {
+
+  # Fix extentions
+
+  nii_filename_extensions <- tibble::as_tibble(stringr::str_locate_all(nii_filename, "\\.")[[1]])
+
+  nii_extension <- NULL
+
+  if (nrow(nii_filename_extensions) > 0) {
+    nii_extstart <- min(nii_filename_extensions$start)
+    nii_extension <- stringr::str_sub(nii_filename, start = nii_extstart + 1)
+    nii_filename <- stringr::str_sub(nii_filename, end = nii_extstart - 1)
+  }
+
+  # Fix Paths
+
+  inpath <- normalizePath(inpath, winslash = "/")
+
+  # BIDS sidecar
+
+  if (!bids_sidecar_exists) {
+    bids_sidecar_heurcheck <- F
+  }
+
+  if (bids_sidecar_exists) {
+    bids_sc <- jsonlite::fromJSON(paste0(inpath, "/", nii_filename, ".json"))
+
+    if ("NonlinearGradientCorrection" %in% names(bids_sc)) {
+      if (bids_sc$NonlinearGradientCorrection == 1) {
+        system(stringr::str_glue("echo Gradient Correction already applied for {nii_filename}"))
+        return()
+      }
+    }
+  }
+
+  # Check BIDS sidecar using heuristic checks
+
+  if (bids_sidecar_heurcheck) {
+
+    # Checking Image Type field
+    imagetype_uncorr_tags <- c("ND") # Tags suggesting uncorrected in ImageType
+
+    imagetype_uncorr_tag_outcomes <- purrr::map(
+      imagetype_uncorr_tags,
+      function(x) stringr::str_match(bids_sc$ImageType, x)
+    )
+    imagetype_uncorr_tag_outcomes <- purrr::map_dbl(
+      imagetype_uncorr_tag_outcomes,
+      function(x) sum(!is.na(x))
+    )
+
+    # Can add other fields to check for other non-Siemens systems here
+
+    # Combine them all here
+    outcomes <- sum(c(imagetype_uncorr_tag_outcomes))
+
+    if (outcomes == 0) {
+      system(stringr::str_glue(
+        "echo Gradient Correction does not appear necessary for {nii_filename}. ",
+        "This check was heuristic though, and could be wrong. Use ",
+        "bids_sidecar_heurcheck = F to override this test"
+      ))
+      return()
+    }
+  }
+
+  # Now we perform correction if we reach this point
+
+  ## Figuring out extensions
+
+  if (is.null(nii_extension)) {
+    if (file_test("-f", paste0(nii_filename, ".nii"))) {
+      nii_extension <- "nii"
+    }
+
+    if (file_test("-f", paste0(nii_filename, ".nii.gz"))) {
+      nii_extension <- "nii.gz"
+    }
+
+    # If it's still null (i.e. no DICOM or BIDS sidecar)
+
+    if (is.null(nii_extension)) {
+      stop("Cannot figure out the file format of the nii file. Please include the
+           extension in the filename")
+    }
+  }
+
+  # Writing the command
+
+  command <- stringr::str_glue(
+    "gradient_nonlin_unwarp.sh ",
+    "{inpath}/{nii_filename}.{nii_extension} ",
+    "{inpath}/{nii_filename}.{nii_extension} ",
+    "{coeff_file} --nobiascor --shiftmap"
+  )
+
+  if (checkLines) {
+    command <- paste0("echo ", command)
+  } else {
+
+    # First, save the original
+    file.copy(
+      from = stringr::str_glue("{inpath}/{nii_filename}.{nii_extension}"),
+      to = stringr::str_glue("{inpath}/{nii_filename}__original.{nii_extension}")
+    )
+  }
+
+
+
+  # Execute
+  outcome <- system(command, intern = T)
+
+
+  # Extra things if command was executed
+  if (!checkLines) {
+
+    # Add field to sidecar
+    if (bids_sidecar_exists) {
+      add2json(
+        list(NonlinearGradientCorrection = 1),
+        json_filename = stringr::str_glue("{inpath}/{nii_filename}.json")
+      )
+    }
+
+    # Other files
+    if (!is.null(outpath_checks)) {
+      if (!dir.exists(outpath_checks)) {
+        dir.create(outpath_checks)
+      }
+
+      file.rename(
+        from = stringr::str_glue("{inpath}/{nii_filename}__deform_grad_abs.nii.gz"),
+        to = stringr::str_glue("{outpath_checks}/{nii_filename}__deform_grad_abs.nii.gz")
+      )
+
+      file.rename(
+        from = stringr::str_glue("{inpath}/{nii_filename}__deform_grad_rel.nii.gz"),
+        to = stringr::str_glue("{outpath_checks}/{nii_filename}__deform_grad_rel.nii.gz")
+      )
+
+      file.rename(
+        from = stringr::str_glue("{inpath}/{nii_filename}__original.{nii_extension}"),
+        to = stringr::str_glue("{outpath_checks}/{nii_filename}__original.{nii_extension}")
+      )
+
+      file.rename(
+        from = stringr::str_glue("{inpath}/{nii_filename}__gradient_nonlin_unwarp.log"),
+        to = stringr::str_glue("{outpath_checks}/{nii_filename}__gradient_nonlin_unwarp.log")
+      )
+    }
+  }
 
   return(outcome)
 }
