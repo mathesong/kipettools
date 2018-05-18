@@ -6,7 +6,7 @@
 \usage{
 gradnonlincorr(nii_filename, inpath = getwd(), coeff_file,
   outpath_checks = NULL, checkLines = F, bids_sidecar_heurcheck = T,
-  bids_sidecar_exists = T)
+  bids_sidecar_exists = T, unwarp_sh_path = "")
 }
 \arguments{
 \item{nii_filename}{Filename of the input nii file. With or without file
@@ -14,25 +14,38 @@ extension}
 
 \item{inpath}{Path to the input file. Defaults to working directory.}
 
-\item{coeff_file}{Filename of the coefficient file. It should be placed in a special folder and named a particular way, but this information is or will be in the setup guide.}
+\item{coeff_file}{Filename of the coefficient file. It should be placed in a
+special folder and named a particular way, but this information is or will
+be in the setup guide.}
 
-\item{outpath_checks}{Path for the extra images for checking to be placed into. If not specified, they will be kept in the same folder.}
+\item{outpath_checks}{Path for the extra images for checking to be placed
+into. If not specified, they will be kept in the same folder.}
 
 \item{checkLines}{Should the system commands be checked (and not run)?
 Default FALSE.}
 
-\item{bids_sidecar_heurcheck}{If it is not explicitly stated in the sidecar whether correction has been applied, this checks the sidecar for heuristic signs. This is, however, not guaranteed to come to the correct answer, depending on the MR system. Default is TRUE.}
+\item{bids_sidecar_heurcheck}{If it is not explicitly stated in the sidecar
+whether correction has been applied, this checks the sidecar for heuristic
+signs. This is, however, not guaranteed to come to the correct answer,
+depending on the MR system. Default is TRUE.}
 
-\item{bids_sidecar_exists}{Defaults to TRUE. Set this to FALSE in case of there not being a BIDS sidecar.}
+\item{bids_sidecar_exists}{Defaults to TRUE. Set this to FALSE in case of
+there not being a BIDS sidecar.}
+
+\item{unwarp_sh_path}{Optional file path to the location of the unwarping .sh
+file. If it is chmodded and added to the system path, this should not be
+necessary, but otherwise, one can specify its location.}
 }
 \value{
-This function modifies the file in place, saves all the other files to check, and returns the outcome from the terminal.
+This function modifies the file in place, saves all the other files
+to check, and returns the outcome from the terminal.
 }
 \description{
 This function wraps around FreeSurfer, with MATLAB installed, and the dev
 MATLAB files in the correct folders. I've written a guide to installing this
-which I'll hopefully put online soon, but contact me if you need this function
-and don't have it.  This function modifies the file in place, and saves everything else either in the same folder, or elsewhere.
+which I'll hopefully put online soon, but contact me if you need this
+function and don't have it.  This function modifies the file in place, and
+saves everything else either in the same folder, or elsewhere.
 }
 \examples{
 gradnonlincorr("sub-01_T1w", coeff_file='coeff_avanto.grad')

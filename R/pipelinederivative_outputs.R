@@ -178,5 +178,5 @@ srtm2xlsx <- function(studyflag = F, filesflag=NULL, filepattern = "*_kinfitresu
   }
 
 
-  xlsx::write.xlsx(x = BP_Data, file = "BP_Sheet.xlsx", row.names = FALSE)
+  writexl::write_xlsx(x = BP_Data, path = "BP_Sheet.xlsx")
 }

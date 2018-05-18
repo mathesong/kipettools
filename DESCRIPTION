@@ -10,7 +10,7 @@ ByteCompile: true
 Imports: 
     R.matlab,
     stringr,
-    xlsx,
+    writexl,
     readr,
     tibble,
     dplyr,

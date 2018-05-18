@@ -43,9 +43,7 @@ ecat_info2bids_json <- function(v_filename, out_filename, inpath = getwd(),
 
   ecatinfo <- ecat_info(paste0(v_filename, ".v"), inpath, outpath)
 
-  #############################################################################
-
-  # Info
+  #### Info ####
 
   ## Tracer Info
   Info_Tracer <- list(
@@ -57,9 +55,7 @@ ecat_info2bids_json <- function(v_filename, out_filename, inpath = getwd(),
     Tracer = Info_Tracer
   )
 
-  #############################################################################
-
-  # Time
+  #### Time ####
 
   ## FrameTimes
 
@@ -84,9 +80,9 @@ ecat_info2bids_json <- function(v_filename, out_filename, inpath = getwd(),
     FrameTimes = Time_FrameTimes
   )
 
-  #############################################################################
+  #### Write Output ####
 
-  # Write Output
+  ### Write Output
 
   out <- list(Info = Info, Time = Time)
 

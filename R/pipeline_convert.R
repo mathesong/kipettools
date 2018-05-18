@@ -683,20 +683,32 @@ dicom2nii <- function(dcm_folder, inpath = NULL, out_filename = "%f_%p_%t_%s",
 #'
 #' This function wraps around FreeSurfer, with MATLAB installed, and the dev
 #' MATLAB files in the correct folders. I've written a guide to installing this
-#' which I'll hopefully put online soon, but contact me if you need this function
-#' and don't have it.  This function modifies the file in place, and saves everything else either in the same folder, or elsewhere.
+#' which I'll hopefully put online soon, but contact me if you need this
+#' function and don't have it.  This function modifies the file in place, and
+#' saves everything else either in the same folder, or elsewhere.
 #'
 #' @param nii_filename Filename of the input nii file. With or without file
-#' extension
+#'   extension
 #' @param inpath Path to the input file. Defaults to working directory.
-#' @param coeff_file Filename of the coefficient file. It should be placed in a special folder and named a particular way, but this information is or will be in the setup guide.
-#' @param outpath_checks Path for the extra images for checking to be placed into. If not specified, they will be kept in the same folder.
+#' @param coeff_file Filename of the coefficient file. It should be placed in a
+#'   special folder and named a particular way, but this information is or will
+#'   be in the setup guide.
+#' @param outpath_checks Path for the extra images for checking to be placed
+#'   into. If not specified, they will be kept in the same folder.
 #' @param checkLines Should the system commands be checked (and not run)?
 #'   Default FALSE.
-#' @param bids_sidecar_heurcheck If it is not explicitly stated in the sidecar whether correction has been applied, this checks the sidecar for heuristic signs. This is, however, not guaranteed to come to the correct answer, depending on the MR system. Default is TRUE.
-#' @param bids_sidecar_exists Defaults to TRUE. Set this to FALSE in case of there not being a BIDS sidecar.
+#' @param bids_sidecar_heurcheck If it is not explicitly stated in the sidecar
+#'   whether correction has been applied, this checks the sidecar for heuristic
+#'   signs. This is, however, not guaranteed to come to the correct answer,
+#'   depending on the MR system. Default is TRUE.
+#' @param bids_sidecar_exists Defaults to TRUE. Set this to FALSE in case of
+#'   there not being a BIDS sidecar.
+#' @param unwarp_sh_path Optional file path to the location of the unwarping .sh
+#'   file. If it is chmodded and added to the system path, this should not be
+#'   necessary, but otherwise, one can specify its location.
 #'
-#' @return This function modifies the file in place, saves all the other files to check, and returns the outcome from the terminal.
+#' @return This function modifies the file in place, saves all the other files
+#'   to check, and returns the outcome from the terminal.
 #' @export
 #'
 #' @examples
@@ -704,7 +716,8 @@ dicom2nii <- function(dcm_folder, inpath = NULL, out_filename = "%f_%p_%t_%s",
 #'
 gradnonlincorr <- function(nii_filename, inpath = getwd(), coeff_file,
                            outpath_checks = NULL, checkLines = F,
-                           bids_sidecar_heurcheck = T, bids_sidecar_exists = T) {
+                           bids_sidecar_heurcheck = T, bids_sidecar_exists = T,
+                           unwarp_sh_path = "") {
 
   # Fix extentions
 
@@ -794,6 +807,7 @@ gradnonlincorr <- function(nii_filename, inpath = getwd(), coeff_file,
   # Writing the command
 
   command <- stringr::str_glue(
+    unwarp_sh_path,
     "gradient_nonlin_unwarp.sh ",
     "{inpath}/{nii_filename}.{nii_extension} ",
     "{inpath}/{nii_filename}.{nii_extension} ",
