@@ -92,7 +92,7 @@ ecat_info2bids_json <- function(v_filename, out_filename, inpath = getwd(),
   jsonlite::write_json(
     out,
     path = paste0(outpath, "/", out_filename, ".json"),
-    pretty = T
+    pretty = T, auto_unbox = T
   )
 }
 
@@ -137,7 +137,7 @@ combine_jsons <- function(json_filenames, out_filename, outpath = getwd()) {
   jsonlite::write_json(
     combined_json,
     path = paste0(outpath, "/", out_filename),
-    pretty = T
+    pretty = T, auto_unbox = T
   )
 }
 
@@ -181,6 +181,6 @@ add2json <- function(list, json_filename, jsonpath = NULL) {
   jsonlite::write_json(
     combined_json,
     path = json_filename,
-    pretty = T
+    pretty = T, auto_unbox = T
   )
 }
