@@ -872,3 +872,28 @@ gradnonlincorr <- function(nii_filename, inpath = getwd(), coeff_file,
 
   return(outcome)
 }
+
+
+#' Read blood data from Kaleidagraph output
+#'
+#' @param filename Name of the file including extension, but excluding path. This function only works for .txt files, and not for Kaleidagraph's qda format. Files must be saved as tab-separated txt files in Kaleidagraph before they can be used with this function.
+#' @param inpath Path to the input file. Defaults to the working directory.
+#'
+#' @return List containing the automatic and manual blood data
+#' @export
+#'
+#' @examples
+#' read_kgblood('blood_file.txt')
+read_kgblood <- function(filename, inpath = getwd()) {
+
+  dat <- readr::read_tsv(stringr::str_glue("{inpath}/{filename}"))
+
+  blooddat_auto <- dplyr::select(dat, `ABSS sec`, `ABSS count`, `Cbl (uncorr)`, `Cbl disp corr`, `Cpl (nCi/cc)`)
+  blooddat_auto <- dplyr::filter(blooddat_auto, !is.na(`ABSS count`))
+
+  blooddat_man <- dplyr::select(dat, dplyr::starts_with('HK'))
+  blooddat_man <- dplyr::filter(blooddat_man, !is.na(HK_time))
+
+  list(auto = blooddat_auto, manual = blooddat_man)
+
+}
