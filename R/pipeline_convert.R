@@ -367,7 +367,7 @@ get_studydb_data <- function(subjFolder, path = getwd(), pet_orig_filenames = T)
         inpath = paste(path, subjFolder, .x$subjRelativePath, sep = "/")
       )))
       orig_filenames <- purrr::map_chr(ecatinfo$ecatdata, c("hdr_dat", "original_file_name"))
-      orig_filenames <- stringr::str_match(orig_filenames, pattern = "([\\w]*)[\\.[\\w]]*$")[, 2]
+      #orig_filenames <- stringr::str_match(orig_filenames, pattern = "([\\w]*)[\\.[\\w]]*$")[, 2]
 
       petfiles$orig_filenames <- orig_filenames
     } else {
