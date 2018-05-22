@@ -174,7 +174,7 @@ add2json <- function(list, json_filename, jsonpath = NULL) {
   # Read and combine
 
   json_data <- jsonlite::fromJSON(json_filename)
-  combined_json <- rlist::list.merge(list, json_data)
+  combined_json <- rlist::list.merge(json_data, list)
 
   # Write
 
