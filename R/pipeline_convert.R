@@ -3,7 +3,8 @@
 #' Extracts header, decay, counts and timing information from ecat7 .v files.
 #'
 #' @param v_filename Filename of the input .v file. Preferably without file
-#'   extension. Should only be the filename. Path goes into inpath.
+#'   extension (except if other dots in the filename). Should only be the
+#'   filename. Path goes into inpath.
 #' @param inpath Path to the input file. Defaults to the working directory.
 #' @param outpath Path to which data can be written. Just required for temporary
 #'   files. Defaults to the working directory.
@@ -24,7 +25,7 @@ ecat_info <- function(v_filename, inpath = getwd(), outpath = getwd(), checkLine
   v_filename_extensions <- tibble::as_tibble(stringr::str_locate_all(v_filename, "\\.")[[1]])
 
   if (nrow(v_filename_extensions) > 0) {
-    v_extstart <- min(v_filename_extensions$start)
+    v_extstart <- max(v_filename_extensions$start)
     v_filename <- stringr::str_sub(v_filename, end = v_extstart - 1)
   }
 
