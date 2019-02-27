@@ -320,10 +320,38 @@ ancmat_getData <- function(matfile) {
 
   # Fixing units
 
+  ## Plasma
+
+  if( bidsout$Plasma$Data$Units[1] == "min" ) {
+    bidsout$Plasma$Data$Units[1] = "s"
+    bidsout$Plasma$Data$Values[,1] =
+      bidsout$Plasma$Data$Values[,1] / 60
+  }
+
+  if( bidsout$Plasma$Data$Units[2] == "min" ) {
+    bidsout$Plasma$Data$Units[2] = "s"
+    bidsout$Plasma$Data$Values[,2] =
+      bidsout$Plasma$Data$Values[,2] / 60
+  }
+
   if( bidsout$Plasma$Data$Units[3] == "nCi/ml" ) {
     bidsout$Plasma$Data$Units[3] = "kBq/ml"
     bidsout$Plasma$Data$Values[,3] =
       bidsout$Plasma$Data$Values[,3] * 0.037
+  }
+
+  ## Discrete Blood
+
+  if( bidsout$Blood$Discrete$Data$Units[1] == "min" ) {
+    bidsout$Blood$Discrete$Data$Units[1] = "s"
+    bidsout$Blood$Discrete$Data$Values[,1] =
+      bidsout$Blood$Discrete$Data$Values[,1] / 60
+  }
+
+  if( bidsout$Blood$Discrete$Data$Units[2] == "min" ) {
+    bidsout$Blood$Discrete$Data$Units[2] = "s"
+    bidsout$Blood$Discrete$Data$Values[,2] =
+      bidsout$Blood$Discrete$Data$Values[,2] / 60
   }
 
   if( bidsout$Blood$Discrete$Data$Units[3] == "nCi/ml" ) {
@@ -332,10 +360,55 @@ ancmat_getData <- function(matfile) {
       bidsout$Blood$Discrete$Data$Values[,3] * 0.037
   }
 
+  ## Continuous Blood
+
+  if( bidsout$Blood$Continuous$Data$Units[1] == "min" ) {
+    bidsout$Blood$Continuous$Data$Units[1] = "s"
+    bidsout$Blood$Continuous$Data$Values[,1] =
+      bidsout$Blood$Continuous$Data$Values[,1] / 60
+  }
+
   if( bidsout$Blood$Continuous$Data$Units[2] == "nCi/ml" ) {
     bidsout$Blood$Continuous$Data$Units[2] = "kBq/ml"
     bidsout$Blood$Continuous$Data$Values[,2] =
-      bidsout$Blood$Continuous$Data$Values[,3] * 0.037
+      bidsout$Blood$Continuous$Data$Values[,2] * 0.037
+  }
+
+  ## Metabolite
+
+  if( bidsout$Metabolite$Data$units[1] == "min" ) {
+    bidsout$Blood$Continuous$Data$Units[1] = "s"
+    bidsout$Blood$Continuous$Data$Values[,1] =
+      bidsout$Blood$Continuous$Data$Values[,1] / 60
+  }
+
+  if( bidsout$Metabolite$Data$units[1] == "min" ) {
+    bidsout$Blood$Continuous$Data$Units[1] = "s"
+    bidsout$Blood$Continuous$Data$Values[,1] =
+      bidsout$Blood$Continuous$Data$Values[,1] / 60
+  }
+
+  ## Time Warnings
+
+  plasmatime_max <- max(bidsout$Plasma$Data$Values[,1])
+  bloodtime_max <- max(bidsout$Blood$Discrete$Data$Values[,1])
+  bloodctime_max <- max(bidsout$Blood$Discrete$Data$Values[,1])
+  metabtime_max <- max(bidsout$Metabolite$Data$Values[,1])
+
+  if(! ( plasmatime_max > 30*60 & plasmatime_max < 150*60 )) {
+    warning("Plasma times do not look like seconds")
+  }
+
+  if(! ( bloodtime_max > 30*60 & bloodtime_max < 150*60 )) {
+    warning("Discrete blood times do not look like seconds")
+  }
+
+  if(! ( bloodctime_max > 2*60 & bloodtime_max < 12*60 )) {
+    warning("Continuous blood times do not look like seconds")
+  }
+
+  if(! ( metabtime_max > 20*60 & metabtime_max < 150*60 )) {
+    warning("Metabolite times do not look like seconds")
   }
 
   return(bidsout)
