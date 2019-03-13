@@ -4,11 +4,13 @@
 \alias{ecat_info}
 \title{Extract information from Ecat7 files}
 \usage{
-ecat_info(v_filename, inpath = getwd(), outpath = getwd(), checkLines = F)
+ecat_info(v_filename, inpath = getwd(), outpath = getwd(),
+  checkLines = F)
 }
 \arguments{
 \item{v_filename}{Filename of the input .v file. Preferably without file
-extension. Should only be the filename. Path goes into inpath.}
+extension (except if other dots in the filename). Should only be the
+filename. Path goes into inpath.}
 
 \item{inpath}{Path to the input file. Defaults to the working directory.}
 

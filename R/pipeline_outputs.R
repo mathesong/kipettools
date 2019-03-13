@@ -168,6 +168,9 @@ roistats_getData <- function(matfile) {
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' ancmat_getData('ancfile.mat')
+#' }
 ancmat_getData <- function(matfile) {
 
   # Checks

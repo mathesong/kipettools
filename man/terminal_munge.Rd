@@ -4,8 +4,8 @@
 \alias{terminal_munge}
 \title{Munge terminal output}
 \usage{
-terminal_munge(terminal_output, matchpattern = NULL, splitpattern = NULL,
-  colnames = NULL, has_header = T)
+terminal_munge(terminal_output, matchpattern = NULL,
+  splitpattern = NULL, colnames = NULL, has_header = T)
 }
 \arguments{
 \item{terminal_output}{Raw terminal output. Make sure that it consists of one
