@@ -126,7 +126,9 @@ roistats_getData <- function(matfile) {
 
   roistats <- R.matlab::readMat(matfile)
 
-  times <- as.numeric(roistats$stats[, , 1]$times[, , 1]$center)
+  times <- c(0, as.numeric(roistats$stats[, , 1]$times[, , 1]$center)) / 60
+  durations <- c(0, as.numeric(roistats$stats[, , 1]$times[, , 1]$duration))/60
+
   gm_tacdata <- as.data.frame(unlist(roistats$stats[, , 1]$greymasked[3][[1]]))
   raw_tacdata <- as.data.frame(unlist(roistats$stats[, , 1]$raw[3][[1]]))
 
@@ -139,8 +141,9 @@ roistats_getData <- function(matfile) {
   names(tacdata) <- roinames
   tacdata <- rbind(0, tacdata)
 
-  tacdata <- cbind(c(0, times), tacdata)
-  names(tacdata)[1] <- "Times"
+  tacdata$times <-times
+  tacdata$durations <- durations
+  #names(tacdata)[1] <- "Times"
 
   gm_roisizes <- roistats$stats[, , 1]$greymasked[, , 1]$vol[1, ]
   raw_roisizes <- roistats$stats[, , 1]$raw[, , 1]$vol[1, ]
