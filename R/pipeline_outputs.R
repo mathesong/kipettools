@@ -146,11 +146,12 @@ roistats_getData <- function(matfile) {
   tacdata$durations <- durations
   #names(tacdata)[1] <- "Times"
 
-  gm_roisizes <- roistats$stats$greymasked$vol[[1]][1,]
-  raw_roisizes <- roistats$stats$raw$vol[[1]][1,]
+  gm_roisizes <- roistats$stats$greymasked$vol[[1]]
+  raw_roisizes <- roistats$stats$raw$vol[[1]]
 
   roisizes <- raw_roisizes
   roisizes[gmrois] <- gm_roisizes[gmrois]
+  roisizes <- data.frame(ROI = roinames, Volume = roisizes[1,])
 
   details <- stringr::str_split_fixed(basename(matfile), pattern = "_", n = 2)
   Subjname <- details[, 1]
