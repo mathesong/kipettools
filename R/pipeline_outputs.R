@@ -40,17 +40,18 @@ kfresults_getData <- function(matfile) {
 
   # Doing the deeds
 
-  kfresults <- R.matlab::readMat(matfile)
+  kfresults <- rmatio::read.mat(matfile)
+  # kfresults <- R.matlab::readMat(matfile)
 
-  times <- as.numeric(kfresults$data[, , 1]$troi) / 60
-  durations <- c(0, as.numeric(kfresults$data[, , 1]$stats[, , 1]$times[, , 1]$duration) / 60)
+  times <- as.numeric(kfresults$data$troi[[1]]) / 60
+  durations <- c(0, as.numeric(kfresults$data$stats$times$duration[[1]]) / 60)
 
-  gm_tacdata <- as.data.frame(kfresults$data[, , 1]$stats[, , 1]$greymasked[, , 1]$mean)
-  raw_tacdata <- as.data.frame(kfresults$data[, , 1]$stats[, , 1]$raw[, , 1]$mean)
+  gm_tacdata <- as.data.frame(kfresults$data$stats$greymasked$mean[[1]])
+  raw_tacdata <- as.data.frame(kfresults$data$stats$raw$mean[[1]])
 
   tacdata <- raw_tacdata
 
-  roinames <- unlist(kfresults$data[, , 1]$stats[, , 1]$roinames)
+  roinames <- unlist(kfresults$data$stats$roinames[[1]])
   roinames <- gsub("#", "gm", roinames)
 
   gmrois <- which(grepl(pattern = "gm", roinames))
@@ -63,14 +64,14 @@ kfresults_getData <- function(matfile) {
 
   tacdata$times <- times
   tacdata$durations <- durations
-  tacdata$weights <- unlist(kfresults$data[, , 1]$weights[, 1])
+  tacdata$weights <- unlist(kfresults$data$weights[[1]])
 
-  gm_roisizes <- kfresults$data[, , 1]$stats[, , 1]$greymasked[, , 1]$vol[1, ]
-  raw_roisizes <- kfresults$data[, , 1]$stats[, , 1]$raw[, , 1]$vol[1, ]
+  gm_roisizes <- kfresults$data$stats$greymasked$vol[[1]]
+  raw_roisizes <- kfresults$data$stats$raw$vol[[1]]
 
   roisizes <- raw_roisizes
-  roisizes[gmrois] <- gm_roisizes[gmrois]
-  roisizes <- data.frame(ROI = roinames, Volume = roisizes)
+  roisizes[,gmrois] <- gm_roisizes[,gmrois]
+  roisizes <- data.frame(ROI = roinames, Volume = roisizes[1,])
 
 
   out <- list(roisizes = roisizes, tacdata = tacdata, Subjname = Subjname, PETNo = PETNo)
@@ -123,16 +124,16 @@ roistats_getData <- function(matfile) {
 
   # Doing the deeds
 
+  roistats <- rmatio::read.mat(matfile)
+  # roistats <- R.matlab::readMat(matfile)
 
-  roistats <- R.matlab::readMat(matfile)
+  times <- c(0, as.numeric(roistats$stats$times$center[[1]])) / 60
+  durations <- c(0, as.numeric(roistats$stats$times$duration[[1]]))/60
 
-  times <- c(0, as.numeric(roistats$stats[, , 1]$times[, , 1]$center)) / 60
-  durations <- c(0, as.numeric(roistats$stats[, , 1]$times[, , 1]$duration))/60
+  gm_tacdata <- as.data.frame(roistats$stats$greymasked$mean[[1]])
+  raw_tacdata <- as.data.frame(roistats$stats$raw$mean[[1]])
 
-  gm_tacdata <- as.data.frame(unlist(roistats$stats[, , 1]$greymasked[3][[1]]))
-  raw_tacdata <- as.data.frame(unlist(roistats$stats[, , 1]$raw[3][[1]]))
-
-  roinames <- unlist(roistats$stats[, , 1]$roinames)
+  roinames <- unlist(roistats$stats$roinames[[1]])
   roinames <- gsub("#", "gm", roinames)
   gmrois <- which(grepl(pattern = "gm", roinames))
 
@@ -145,8 +146,8 @@ roistats_getData <- function(matfile) {
   tacdata$durations <- durations
   #names(tacdata)[1] <- "Times"
 
-  gm_roisizes <- roistats$stats[, , 1]$greymasked[, , 1]$vol[1, ]
-  raw_roisizes <- roistats$stats[, , 1]$raw[, , 1]$vol[1, ]
+  gm_roisizes <- roistats$stats$greymasked$vol[[1]][1,]
+  raw_roisizes <- roistats$stats$raw$vol[[1]][1,]
 
   roisizes <- raw_roisizes
   roisizes[gmrois] <- gm_roisizes[gmrois]
