@@ -4,8 +4,12 @@
 \alias{ecat_info2bids_json}
 \title{Extract Information from ecat7 Header into BIDS Sidecar}
 \usage{
-ecat_info2bids_json(v_filename, out_filename, inpath = getwd(),
-  outpath = getwd())
+ecat_info2bids_json(
+  v_filename,
+  out_filename,
+  inpath = getwd(),
+  outpath = getwd()
+)
 }
 \arguments{
 \item{v_filename}{Filename of the input .v file. Preferably without file

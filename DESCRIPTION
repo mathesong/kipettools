@@ -1,5 +1,5 @@
 Package: kipettools
-Version: 0.0.0.9000
+Version: 0.0.1
 Title: R Tools For KI PET Group Files
 Description: This package contains tools for interacting with KI PET group pipeline files with R.
 Authors@R: person("Granville", "Matheson", , "mathesong@gmail.com", c("aut", "cre"))
@@ -21,6 +21,6 @@ Imports:
     rlist,
     rmatio
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 6.1.1.9000
+RoxygenNote: 7.2.3
 URL: https://github.com/mathesong/kipettools
 BugReports: https://github.com/mathesong/kipettools/issues

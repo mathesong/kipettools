@@ -4,9 +4,15 @@
 \alias{ecat2nii}
 \title{Ecat7 to NIfTI Converter}
 \usage{
-ecat2nii(v_filename, inpath = getwd(), out_filename = NULL,
-  outpath = getwd(), checkLines = F, compressFile = T,
-  bids_sidecar = T)
+ecat2nii(
+  v_filename,
+  inpath = getwd(),
+  out_filename = NULL,
+  outpath = getwd(),
+  checkLines = F,
+  compressFile = T,
+  bids_sidecar = T
+)
 }
 \arguments{
 \item{v_filename}{Filename of the input .v file. Preferably without file

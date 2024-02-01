@@ -4,8 +4,11 @@
 \alias{get_studydb_data_folder}
 \title{Get studydb data for a study folder}
 \usage{
-get_studydb_data_folder(studyFolder = getwd(), savecsv = F,
-  pet_orig_filenames = T)
+get_studydb_data_folder(
+  studyFolder = getwd(),
+  savecsv = F,
+  pet_orig_filenames = T
+)
 }
 \arguments{
 \item{studyFolder}{The folder location of the study folder. Default is

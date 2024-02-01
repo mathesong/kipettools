@@ -4,10 +4,12 @@
 \alias{roistats_getData}
 \title{Extract TAC data from roistats}
 \usage{
-roistats_getData(matfile)
+roistats_getData(matfile, use_rmatio = FALSE)
 }
 \arguments{
 \item{matfile}{Filename of the roistats file}
+
+\item{use_rmatio}{Should rmatio be used for extraction? It tends to be faster, but sometimes fails. But sometimes only rmatio works. I have no idea why...}
 }
 \value{
 List with the sizes of all rois, the subject name, PET number, and

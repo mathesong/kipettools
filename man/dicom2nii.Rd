@@ -4,9 +4,16 @@
 \alias{dicom2nii}
 \title{DICOM 2 NII Converter with BIDS Sidecars}
 \usage{
-dicom2nii(dcm_folder, inpath = NULL, out_filename = "\%f_\%p_\%t_\%s",
-  outpath = getwd(), checkLines = F, compressFile = "y",
-  bids_sidecar = "y", anon = "y")
+dicom2nii(
+  dcm_folder,
+  inpath = NULL,
+  out_filename = "\%f_\%p_\%t_\%s",
+  outpath = getwd(),
+  checkLines = F,
+  compressFile = "y",
+  bids_sidecar = "y",
+  anon = "y"
+)
 }
 \arguments{
 \item{dcm_folder}{The folder of the DICOM file which should be converted.

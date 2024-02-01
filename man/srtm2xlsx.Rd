@@ -4,8 +4,11 @@
 \alias{srtm2xlsx}
 \title{Extract data from srtmresults files into a single spreadsheet.}
 \usage{
-srtm2xlsx(studyflag = F, filesflag = NULL,
-  filepattern = "*_kinfitresults.mat.txt")
+srtm2xlsx(
+  studyflag = F,
+  filesflag = NULL,
+  filepattern = "*_kinfitresults.mat.txt"
+)
 }
 \arguments{
 \item{studyflag}{Logical: is there a study name flag on each filename (e.g.

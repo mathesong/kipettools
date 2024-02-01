@@ -4,9 +4,16 @@
 \alias{gradnonlincorr}
 \title{Perform Gradient Nonlinearity Correction}
 \usage{
-gradnonlincorr(nii_filename, inpath = getwd(), coeff_file,
-  outpath_checks = NULL, checkLines = F, bids_sidecar_heurcheck = T,
-  bids_sidecar_exists = T, unwarp_sh_path = "")
+gradnonlincorr(
+  nii_filename,
+  inpath = getwd(),
+  coeff_file,
+  outpath_checks = NULL,
+  checkLines = F,
+  bids_sidecar_heurcheck = T,
+  bids_sidecar_exists = T,
+  unwarp_sh_path = ""
+)
 }
 \arguments{
 \item{nii_filename}{Filename of the input nii file. With or without file
